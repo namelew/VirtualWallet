@@ -12,17 +12,7 @@ func main() {
 	db.Connect()
 	db.Migrate()
 
-	// db.AddClient(clients.Client{
-	// 	Name:   "Vanderlei",
-	// 	Amount: 100,
-	// })
-
-	// db.AddClient(clients.Client{
-	// 	Name:   "Agnaldo",
-	// 	Amount: 110,
-	// })
-
-	db.ClientTransfer(3, 4, 110)
+	//db.ClientTransfer(3, 4, 100)
 
 	db.Disconnect()
 }

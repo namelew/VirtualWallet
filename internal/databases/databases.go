@@ -10,12 +10,18 @@ import (
 	_ "github.com/golang-migrate/migrate/v4/source/file"
 
 	_ "github.com/lib/pq"
-	"github.com/namelew/VirtualWallet/internal/clients"
 	"github.com/namelew/VirtualWallet/internal/envoriment"
 )
 
 type Database struct {
 	db *sql.DB
+}
+
+type Table interface {
+	Get(db *sql.DB, id uint64) error
+	Add(db *sql.DB) error
+	Update(db *sql.DB) error
+	Remove(db *sql.DB) error
 }
 
 func New() *Database {
@@ -66,31 +72,34 @@ func (d *Database) Migrate() {
 	m.Up()
 }
 
-func (d *Database) AddClient(c clients.Client) {
-	_, err := d.db.Exec("insert into clients(name,amount) values ($1, $2)", c.Name, c.Amount)
+func (d *Database) Add(reg Table) {
+	err := reg.Add(d.db)
 
 	if err != nil {
-		log.Fatal("Unable to create new client. ", err.Error())
+		log.Fatal(err.Error())
 	}
 }
 
-func (d *Database) getClient(id uint64) *clients.Client {
-	var client clients.Client
-
-	err := d.db.QueryRow("select id,name,amount from clients where id = $1", id).Scan(&client.ID, &client.Name, &client.Amount)
+func (d *Database) Update(reg Table) {
+	err := reg.Update(d.db)
 
 	if err != nil {
-		log.Fatal("Unable to bind client data. ", err.Error())
+		log.Fatal(err.Error())
 	}
-
-	if client.ID == 0 {
-		log.Fatalf("unable to find client %d on database", id)
-	}
-
-	return &client
 }
 
-func (d *Database) ClientTransfer(source uint64, target uint64, value float64) {
-	sender := d.getClient(source)
-	receiver := d.getClient(target)
+func (d *Database) Get(reg Table, id uint64) {
+	err := reg.Get(d.db, id)
+
+	if err != nil {
+		log.Fatal(err.Error())
+	}
+}
+
+func (d *Database) Remove(reg Table) {
+	err := reg.Remove(d.db)
+
+	if err != nil {
+		log.Fatal(err.Error())
+	}
 }
