@@ -10,5 +10,6 @@ func main() {
 	db := databases.New()
 
 	db.Connect()
+	db.Migrate()
 	db.Disconnect()
 }
