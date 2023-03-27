@@ -67,15 +67,30 @@ func (d *Database) Migrate() {
 }
 
 func (d *Database) AddClient(c clients.Client) {
-	stmt, err := d.db.Prepare("insert into clients(name,amount) values ($1, $2)")
-
-	if err != nil {
-		log.Fatal("Unable to prepare statment. ", err.Error())
-	}
-
-	_, err = stmt.Exec(c.Name, c.Amount)
+	_, err := d.db.Exec("insert into clients(name,amount) values ($1, $2)", c.Name, c.Amount)
 
 	if err != nil {
 		log.Fatal("Unable to create new client. ", err.Error())
 	}
+}
+
+func (d *Database) getClient(id uint64) *clients.Client {
+	var client clients.Client
+
+	err := d.db.QueryRow("select id,name,amount from clients where id = $1", id).Scan(&client.ID, &client.Name, &client.Amount)
+
+	if err != nil {
+		log.Fatal("Unable to bind client data. ", err.Error())
+	}
+
+	if client.ID == 0 {
+		log.Fatalf("unable to find client %d on database", id)
+	}
+
+	return &client
+}
+
+func (d *Database) ClientTransfer(source uint64, target uint64, value float64) {
+	sender := d.getClient(source)
+	receiver := d.getClient(target)
 }
