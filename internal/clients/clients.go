@@ -2,6 +2,7 @@ package clients
 
 type Client struct {
 	ID     uint64
+	Name   string
 	Amount float64
 }
 

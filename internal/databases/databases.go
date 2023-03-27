@@ -10,6 +10,7 @@ import (
 	_ "github.com/golang-migrate/migrate/v4/source/file"
 
 	_ "github.com/lib/pq"
+	"github.com/namelew/VirtualWallet/internal/clients"
 	"github.com/namelew/VirtualWallet/internal/envoriment"
 )
 
@@ -56,8 +57,6 @@ func (d *Database) Migrate() {
 		log.Fatal("Unable to load migrate configs. ", err.Error())
 	}
 
-	log.Println(d.db == nil)
-
 	m, err := migrate.NewWithDatabaseInstance("file://./internal/databases/migrations", envoriment.GetVar("DBNAME"), driver)
 
 	if err != nil {
@@ -65,4 +64,18 @@ func (d *Database) Migrate() {
 	}
 
 	m.Up()
+}
+
+func (d *Database) AddClient(c clients.Client) {
+	stmt, err := d.db.Prepare("insert into clients(name,amount) values ($1, $2)")
+
+	if err != nil {
+		log.Fatal("Unable to prepare statment. ", err.Error())
+	}
+
+	_, err = stmt.Exec(c.Name, c.Amount)
+
+	if err != nil {
+		log.Fatal("Unable to create new client. ", err.Error())
+	}
 }
