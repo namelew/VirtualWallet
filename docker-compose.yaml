@@ -1,0 +1,23 @@
+version: '3.9'
+services:
+  db:
+    image: postgres:15
+    container_name: wallet_db
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - DB_DATABASE=digitalwallet
+      - POSTGRES_ROOT_USER=postgres
+      - POSTGRES_ROOT_PASSWORD=postgres
+      - POSTGRES_INITDB_ARGS="--encoding=UTF8"
+    volumes:
+      - db:/var/lib/postgresql/data
+    networks:
+      - api
+    ports:
+      - 5432:5432
+volumes:
+  db:
+networks:
+  api:
+    driver: "bridge"
