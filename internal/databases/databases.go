@@ -72,34 +72,18 @@ func (d *Database) Migrate() {
 	m.Up()
 }
 
-func (d *Database) Add(reg Table) {
-	err := reg.Add(d.db)
-
-	if err != nil {
-		log.Fatal(err.Error())
-	}
+func (d *Database) Add(reg Table) error {
+	return reg.Add(d.db)
 }
 
-func (d *Database) Update(reg Table) {
-	err := reg.Update(d.db)
-
-	if err != nil {
-		log.Fatal(err.Error())
-	}
+func (d *Database) Update(reg Table) error {
+	return reg.Update(d.db)
 }
 
-func (d *Database) Get(reg Table, id ...uint64) {
-	err := reg.Get(d.db, id)
-
-	if err != nil {
-		log.Fatal(err.Error())
-	}
+func (d *Database) Get(reg Table, id ...uint64) error {
+	return reg.Get(d.db, id)
 }
 
-func (d *Database) Remove(reg Table) {
-	err := reg.Remove(d.db)
-
-	if err != nil {
-		log.Fatal(err.Error())
-	}
+func (d *Database) Remove(reg Table) error {
+	return reg.Remove(d.db)
 }

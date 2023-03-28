@@ -4,8 +4,6 @@ import (
 	"database/sql"
 	"errors"
 	"strconv"
-
-	"github.com/labstack/echo"
 )
 
 type Client struct {
@@ -14,7 +12,7 @@ type Client struct {
 	Amount float64
 }
 
-func (c *Client) amountValidation(value float64) bool {
+func (c *Client) AmountValidation(value float64) bool {
 	return c.Amount >= value
 }
 
@@ -59,9 +57,5 @@ func (c *Client) Remove(d *sql.DB) error {
 		return errors.New("unable to delete client data. " + err.Error())
 	}
 
-	return nil
-}
-
-func GetSaldo(c echo.Context) error {
 	return nil
 }
