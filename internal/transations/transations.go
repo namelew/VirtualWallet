@@ -5,6 +5,8 @@ import (
 	"errors"
 	"strconv"
 	"time"
+
+	"github.com/labstack/echo"
 )
 
 type Transation struct {
@@ -68,5 +70,9 @@ func (t *Transation) Remove(d *sql.DB) error {
 		return errors.New("unable to delete transation data. " + err.Error())
 	}
 
+	return nil
+}
+
+func Tranfer(c echo.Context) error {
 	return nil
 }
