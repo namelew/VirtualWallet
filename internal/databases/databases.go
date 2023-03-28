@@ -18,7 +18,7 @@ type Database struct {
 }
 
 type Table interface {
-	Get(db *sql.DB, id uint64) error
+	Get(db *sql.DB, id []uint64) error
 	Add(db *sql.DB) error
 	Update(db *sql.DB) error
 	Remove(db *sql.DB) error
@@ -88,7 +88,7 @@ func (d *Database) Update(reg Table) {
 	}
 }
 
-func (d *Database) Get(reg Table, id uint64) {
+func (d *Database) Get(reg Table, id ...uint64) {
 	err := reg.Get(d.db, id)
 
 	if err != nil {

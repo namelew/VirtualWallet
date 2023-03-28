@@ -1,2 +1,2 @@
 DROP TABLE IF EXISTS clients;
-DROP TABLE IF EXISTS clients_id_seq;
+DROP TABLE IF EXISTS transations;
