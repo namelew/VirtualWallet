@@ -59,21 +59,3 @@ func (c *Client) Remove(d *sql.DB) error {
 
 	return nil
 }
-
-// func (c *Client) ClientTransfer(source uint64, target uint64, value float64) {
-// 	sender := d.getClient(source)
-// 	receiver := d.getClient(target)
-
-// 	if sender.Lock != 0 || receiver.Lock != 0 {
-// 		time.Sleep(time.Second)
-// 		d.ClientTransfer(source, target, value)
-// 		return
-// 	}
-
-// 	if !sender.TransferValidation(value) {
-// 		log.Fatal("Can't execute tranfer, value granter then the client amount")
-// 	}
-
-// 	sender.Amount -= value
-// 	receiver.Amount += value
-// }
