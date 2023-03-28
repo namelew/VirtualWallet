@@ -1,11 +1,14 @@
 package transitions
 
 import (
+	"math/rand"
 	"strconv"
+	"time"
 
 	"github.com/labstack/echo"
 	"github.com/namelew/VirtualWallet/internal/clients"
 	"github.com/namelew/VirtualWallet/internal/databases"
+	"github.com/namelew/VirtualWallet/internal/transations"
 )
 
 type Transition struct {
@@ -51,7 +54,54 @@ func (t *Transition) Add(c echo.Context) error {
 		return echo.ErrBadRequest
 	}
 
-	// precisa de uma função que checa se há uma operação não finalizada em execução com o mesmo target
+	scopy := sender
+
+	new := transations.Transation{
+		SenderID:   sender.ID,
+		ReceiverID: receiver.ID,
+		Amount:     value,
+		Finished:   false,
+	}
+
+	secureTransEnd := func(d *databases.Database, nw transations.Transation, n int) {
+		nw.Finished = true
+		err := d.Update(&nw)
+		for err != nil {
+			seed := rand.NewSource(time.Now().UnixNano())
+			random := rand.New(seed)
+			time.Sleep(time.Duration(random.Intn(n)))
+			err = d.Update(&nw)
+		}
+	}
+
+	if err := t.db.Add(&new); err != nil {
+		return echo.ErrInternalServerError
+	}
+
+	tt, err := time.Parse(time.DateTime, time.Now().Format(time.DateTime))
+
+	if err != nil {
+		return echo.ErrInternalServerError
+	}
+
+	new.CreatedAt = tt.Add(time.Hour * 3)
+
+	if err := t.db.Get(&new, uint64(source_id), uint64(target_id)); err != nil {
+		return echo.ErrInternalServerError
+	}
+
+	if err := t.db.Update(&sender); err != nil {
+		go secureTransEnd(t.db, new, 10)
+		return echo.ErrInternalServerError
+	}
+
+	if err := t.db.Update(&receiver); err != nil {
+		go t.db.Update(&scopy)
+		go secureTransEnd(t.db, new, 10)
+		return echo.ErrInternalServerError
+	}
+
+	go secureTransEnd(t.db, new, 10)
 
 	return nil
 }
