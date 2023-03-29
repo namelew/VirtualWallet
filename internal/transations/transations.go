@@ -16,7 +16,17 @@ type Transation struct {
 }
 
 func (t *Transation) Add(d *sql.DB) error {
-	_, err := d.Exec("insert into transations(sender_id,receiver_id,amount,finished,created_at) values ($1, $2, $3, $4, $5)",
+	isc, err := t.isConcurrent(d)
+
+	if err != nil {
+		return errors.New("unable to create new transations. can't check if was a concurrent write: " + err.Error())
+	}
+
+	if isc {
+		return errors.New("unable to create new transations. concurrent writing")
+	}
+
+	_, err = d.Exec("insert into transations(sender_id,receiver_id,amount,finished,created_at) values ($1, $2, $3, $4, $5)",
 		t.SenderID,
 		t.ReceiverID,
 		t.Amount,
@@ -82,4 +92,16 @@ func (t *Transation) Remove(d *sql.DB) error {
 	}
 
 	return nil
+}
+
+func (t *Transation) isConcurrent(d *sql.DB) (bool, error) {
+	var nrows uint64
+
+	err := d.QueryRow("select count(*) from transations where receiver_id=$2 and (sender_id != $1 or created_at != $3) and finished=false", t.SenderID, t.ReceiverID, t.CreatedAt).Scan(&nrows)
+
+	if err != nil {
+		return false, errors.New("unable to query transations. " + err.Error())
+	}
+
+	return nrows > 0, nil
 }

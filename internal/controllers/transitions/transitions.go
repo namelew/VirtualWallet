@@ -1,6 +1,7 @@
 package transitions
 
 import (
+	"log"
 	"math/rand"
 	"strconv"
 	"time"
@@ -19,6 +20,48 @@ func New(d *databases.Database) *Transition {
 	return &Transition{
 		db: d,
 	}
+}
+
+func (t *Transition) pack(s clients.Client, r clients.Client, tn *transations.Transation) {
+	scp := s
+
+	ensure := func(d *databases.Database, nw databases.Table, n int) {
+		err := d.Update(nw)
+		for err != nil {
+			seed := rand.NewSource(time.Now().UnixNano())
+			random := rand.New(seed)
+			time.Sleep(time.Duration(random.Intn(n)) * time.Microsecond)
+			err = d.Update(nw)
+		}
+	}
+
+	if err := t.db.Add(tn); err != nil {
+		seed := rand.NewSource(time.Now().UnixNano())
+		random := rand.New(seed)
+		log.Println(err.Error())
+		time.Sleep(time.Duration(random.Intn(20)) * time.Microsecond)
+		t.pack(s, r, tn)
+		return
+	}
+
+	s.Amount -= tn.Amount
+	r.Amount += tn.Amount
+
+	if err := t.db.Update(&s); err != nil {
+		tn.Finished = true
+		go ensure(t.db, tn, 10)
+		return
+	}
+
+	if err := t.db.Update(&r); err != nil {
+		go ensure(t.db, &scp, 10)
+		tn.Finished = true
+		go ensure(t.db, tn, 10)
+		return
+	}
+
+	tn.Finished = true
+	go ensure(t.db, tn, 10)
 }
 
 func (t *Transition) Add(c echo.Context) error {
@@ -54,8 +97,6 @@ func (t *Transition) Add(c echo.Context) error {
 		return echo.ErrBadRequest
 	}
 
-	scopy := sender
-
 	new := transations.Transation{
 		SenderID:   sender.ID,
 		ReceiverID: receiver.ID,
@@ -64,38 +105,7 @@ func (t *Transition) Add(c echo.Context) error {
 		CreatedAt:  time.Now(),
 	}
 
-	ensure := func(d *databases.Database, nw databases.Table, n int) {
-		err := d.Update(nw)
-		for err != nil {
-			seed := rand.NewSource(time.Now().UnixNano())
-			random := rand.New(seed)
-			time.Sleep(time.Duration(random.Intn(n)))
-			err = d.Update(nw)
-		}
-	}
-
-	if err := t.db.Add(&new); err != nil {
-		return echo.ErrInternalServerError
-	}
-
-	sender.Amount -= value
-	receiver.Amount += value
-
-	if err := t.db.Update(&sender); err != nil {
-		new.Finished = true
-		go ensure(t.db, &new, 10)
-		return echo.ErrInternalServerError
-	}
-
-	if err := t.db.Update(&receiver); err != nil {
-		go ensure(t.db, &scopy, 10)
-		new.Finished = true
-		go ensure(t.db, &new, 10)
-		return echo.ErrInternalServerError
-	}
-
-	new.Finished = true
-	go ensure(t.db, &new, 10)
+	go t.pack(sender, receiver, &new)
 
 	return nil
 }
