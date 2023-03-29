@@ -1,7 +1,6 @@
 package transitions
 
 import (
-	"log"
 	"math/rand"
 	"strconv"
 	"time"
@@ -38,7 +37,6 @@ func (t *Transition) pack(s clients.Client, r clients.Client, tn *transations.Tr
 	if err := t.db.Add(tn); err != nil {
 		seed := rand.NewSource(time.Now().UnixNano())
 		random := rand.New(seed)
-		log.Println(err.Error())
 		time.Sleep(time.Duration(random.Intn(20)) * time.Microsecond)
 		t.pack(s, r, tn)
 		return
