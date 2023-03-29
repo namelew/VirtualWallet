@@ -63,7 +63,7 @@ func (d *Database) Migrate() {
 		log.Fatal("Unable to load migrate configs. ", err.Error())
 	}
 
-	m, err := migrate.NewWithDatabaseInstance("file://./internal/databases/migrations", envoriment.GetVar("DBNAME"), driver)
+	m, err := migrate.NewWithDatabaseInstance("file://./migrations", envoriment.GetVar("DBNAME"), driver)
 
 	if err != nil {
 		log.Fatal("Unable to migrate table changes. ", err.Error())
