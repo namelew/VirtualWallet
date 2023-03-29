@@ -32,7 +32,7 @@ func (t *Transation) Add(d *sql.DB) error {
 }
 
 func (t *Transation) Update(d *sql.DB) error {
-	_, err := d.Exec("update transations set amount=$4,finished=$5 where sender_id=$1 and receiver_id=$2 and created_at=$3",
+	ret, err := d.Exec("update transations set amount=$4,finished=$5 where sender_id=$1 and receiver_id=$2 and created_at=$3",
 		t.SenderID,
 		t.ReceiverID,
 		t.CreatedAt,
@@ -42,6 +42,12 @@ func (t *Transation) Update(d *sql.DB) error {
 
 	if err != nil {
 		return errors.New("unable to update transation data. " + err.Error())
+	}
+
+	rows, err := ret.RowsAffected()
+
+	if err != nil || rows == 0 {
+		return errors.New("unable to update transation data. register not found")
 	}
 
 	return nil
@@ -63,10 +69,16 @@ func (t *Transation) Get(d *sql.DB, id []uint64) error {
 }
 
 func (t *Transation) Remove(d *sql.DB) error {
-	_, err := d.Exec("delete from transations where sender_id=$1 and receiver_id=$2 and created_at=$3", t.SenderID, t.ReceiverID, t.CreatedAt)
+	ret, err := d.Exec("delete from transations where sender_id=$1 and receiver_id=$2 and created_at=$3", t.SenderID, t.ReceiverID, t.CreatedAt)
 
 	if err != nil {
 		return errors.New("unable to delete transation data. " + err.Error())
+	}
+
+	rows, err := ret.RowsAffected()
+
+	if err != nil || rows == 0 {
+		return errors.New("unable to delete transation data. register not found")
 	}
 
 	return nil

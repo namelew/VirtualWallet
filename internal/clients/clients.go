@@ -27,10 +27,16 @@ func (c *Client) Add(d *sql.DB) error {
 }
 
 func (c *Client) Update(d *sql.DB) error {
-	_, err := d.Exec("update clients set name=$2,amount=$3 where id=$1", c.ID, c.Name, c.Amount)
+	ret, err := d.Exec("update clients set name=$2,amount=$3 where id=$1", c.ID, c.Name, c.Amount)
 
 	if err != nil {
 		return errors.New("unable to update client data. " + err.Error())
+	}
+
+	rows, err := ret.RowsAffected()
+
+	if err != nil || rows == 0 {
+		return errors.New("unable to update client data. register not found")
 	}
 
 	return nil
@@ -51,10 +57,16 @@ func (c *Client) Get(d *sql.DB, id []uint64) error {
 }
 
 func (c *Client) Remove(d *sql.DB) error {
-	_, err := d.Exec("delete from clients where id=$1", c.ID)
+	ret, err := d.Exec("delete from clients where id=$1", c.ID)
 
 	if err != nil {
 		return errors.New("unable to delete client data. " + err.Error())
+	}
+
+	rows, err := ret.RowsAffected()
+
+	if err != nil || rows == 0 {
+		return errors.New("unable to delete client data. register not found")
 	}
 
 	return nil

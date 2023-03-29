@@ -78,9 +78,8 @@ func (t *Transition) Add(c echo.Context) error {
 		return echo.ErrInternalServerError
 	}
 
-	if err := t.db.Get(&new, uint64(source_id), uint64(target_id)); err != nil {
-		return echo.ErrInternalServerError
-	}
+	sender.Amount -= value
+	receiver.Amount += value
 
 	if err := t.db.Update(&sender); err != nil {
 		new.Finished = true
