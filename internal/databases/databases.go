@@ -4,9 +4,9 @@ import (
 	"database/sql"
 	"fmt"
 	"log"
+	"os"
+	"strings"
 
-	"github.com/golang-migrate/migrate/v4"
-	"github.com/golang-migrate/migrate/v4/database/postgres"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
 
 	_ "github.com/lib/pq"
@@ -57,19 +57,31 @@ func (d *Database) Disconnect() {
 }
 
 func (d *Database) Migrate() {
-	driver, err := postgres.WithInstance(d.db, &postgres.Config{})
+	data, err := os.ReadFile("./migrations/" + envoriment.GetVar("DBNAME") + ".up.sql")
 
 	if err != nil {
-		log.Fatal("Unable to load migrate configs. ", err.Error())
+		log.Panic("Unable to load migrate configs. ", err.Error())
 	}
 
-	m, err := migrate.NewWithDatabaseInstance("file://./migrations", envoriment.GetVar("DBNAME"), driver)
+	sanitaze := func(s string) string {
+		trash := []string{
+			"\n", "\b", "\t", "\a", "\r", "\f", "\v",
+		}
 
-	if err != nil {
-		log.Fatal("Unable to migrate table changes. ", err.Error())
+		for i := range trash {
+			s = strings.ReplaceAll(s, trash[i], "")
+		}
+
+		return s
 	}
 
-	m.Up()
+	for _, command := range strings.Split(sanitaze(string(data)), ";") {
+		_, err = d.db.Exec(command)
+
+		if err != nil {
+			log.Fatal("Unable to execute migration step ", command, ".", err.Error())
+		}
+	}
 }
 
 func (d *Database) Add(reg Table) error {

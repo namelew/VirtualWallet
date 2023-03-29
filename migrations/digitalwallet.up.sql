@@ -17,6 +17,6 @@ CREATE TABLE IF NOT EXISTS transations (
   CONSTRAINT fk_receiver FOREIGN KEY(receiver_id) REFERENCES clients(id)
 );
 
-ALTER TABLE IF EXISTS clients DROP COLUMN IF EXISTS lock;
-ALTER TABLE IF EXISTS transations ADD COLUMN IF NOT EXISTS created_at timestamp default now();
-ALTER TABLE IF EXISTS transations ADD PRIMARY KEY (sender_id, receiver_id, created_at);
+--ALTER TABLE IF EXISTS clients DROP COLUMN lock;
+--ALTER TABLE IF EXISTS transations ADD COLUMN created_at timestamp default now();
+--ALTER TABLE IF EXISTS transations ADD PRIMARY KEY (sender_id, receiver_id, created_at);
