@@ -9,7 +9,6 @@ FROM alpine:3.17 as binary
 
 WORKDIR /app
 COPY --from=base /app/api .
-COPY --from=base /app/.env .
 COPY --from=base /app/migrations ./migrations
 
 ENV PORT=8080
