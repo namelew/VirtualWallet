@@ -10,8 +10,8 @@ import (
 func LoadFile(file string) {
 	err := godotenv.Load(file)
 
-	if err != nil {
-		log.Fatal("unable to load env variables from file. ", err.Error())
+	if err != nil && err == os.ErrNotExist {
+		log.Println("unable to load env variables from file. ", err.Error())
 	}
 }
 
