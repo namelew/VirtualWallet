@@ -6,11 +6,20 @@ WORKDIR /app
 RUN go mod tidy; go build -o ./api ./cmd/api/main.go
 
 FROM alpine:3.17 as binary
+
 WORKDIR /app
 COPY --from=base /app/api .
 COPY --from=base /app/.env .
 COPY --from=base /app/migrations ./migrations
 
-EXPOSE 8080
+ENV PORT=8080
+ENV DBHOST=localhost
+ENV DBPORT=5432
+ENV DBUSER=postgres
+ENV DBPASS=postgres
+ENV DBNAME=postgres
+ENV DBSSL=disable
+
+EXPOSE ${PORT}
 
 ENTRYPOINT [ "./api" ]

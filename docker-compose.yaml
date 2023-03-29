@@ -4,6 +4,12 @@ services:
     build:
       context: ./images/api
     container_name: wallet_api
+    environment:
+      - PORT=8080
+      - DBHOST=wallet_db
+      - DBUSER=digitalwallet
+      - DBPASS=digitalwallet
+      - DBNAME=digitalwallet
     networks:
       - api
     ports:
