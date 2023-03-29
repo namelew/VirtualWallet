@@ -16,11 +16,12 @@ type Transation struct {
 }
 
 func (t *Transation) Add(d *sql.DB) error {
-	_, err := d.Exec("insert into transations(sender_id,receiver_id,amount,finished) values ($1, $2, $3, $4)",
+	_, err := d.Exec("insert into transations(sender_id,receiver_id,amount,finished,created_at) values ($1, $2, $3, $4, $5)",
 		t.SenderID,
 		t.ReceiverID,
 		t.Amount,
 		t.Finished,
+		t.CreatedAt,
 	)
 
 	if err != nil {

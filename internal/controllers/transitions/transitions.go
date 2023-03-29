@@ -61,16 +61,16 @@ func (t *Transition) Add(c echo.Context) error {
 		ReceiverID: receiver.ID,
 		Amount:     value,
 		Finished:   false,
+		CreatedAt:  time.Now(),
 	}
 
-	secureTransEnd := func(d *databases.Database, nw transations.Transation, n int) {
-		nw.Finished = true
-		err := d.Update(&nw)
+	ensure := func(d *databases.Database, nw databases.Table, n int) {
+		err := d.Update(nw)
 		for err != nil {
 			seed := rand.NewSource(time.Now().UnixNano())
 			random := rand.New(seed)
 			time.Sleep(time.Duration(random.Intn(n)))
-			err = d.Update(&nw)
+			err = d.Update(nw)
 		}
 	}
 
@@ -78,30 +78,25 @@ func (t *Transition) Add(c echo.Context) error {
 		return echo.ErrInternalServerError
 	}
 
-	tt, err := time.Parse(time.DateTime, time.Now().Format(time.DateTime))
-
-	if err != nil {
-		return echo.ErrInternalServerError
-	}
-
-	new.CreatedAt = tt.Add(time.Hour * 3)
-
 	if err := t.db.Get(&new, uint64(source_id), uint64(target_id)); err != nil {
 		return echo.ErrInternalServerError
 	}
 
 	if err := t.db.Update(&sender); err != nil {
-		go secureTransEnd(t.db, new, 10)
+		new.Finished = true
+		go ensure(t.db, &new, 10)
 		return echo.ErrInternalServerError
 	}
 
 	if err := t.db.Update(&receiver); err != nil {
-		go t.db.Update(&scopy)
-		go secureTransEnd(t.db, new, 10)
+		go ensure(t.db, &scopy, 10)
+		new.Finished = true
+		go ensure(t.db, &new, 10)
 		return echo.ErrInternalServerError
 	}
 
-	go secureTransEnd(t.db, new, 10)
+	new.Finished = true
+	go ensure(t.db, &new, 10)
 
 	return nil
 }
